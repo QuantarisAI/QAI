@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap');
+@import "tailwindcss";
+
+
+:root {
+	--void: oklch(6.554% 0.0175 247.674);
+	--deep: oklch(10% 0.022 262);
+	--surface: oklch(14% 0.028 262);
+	--surface-2: oklch(18% 0.030 262);
+	--border: oklch(24% 0.035 262);
+	--muted: oklch(50% 0.040 262);
+	--subtle: oklch(65% 0.025 262);
+	--text: oklch(93% 0.010 262);
+	--white: oklch(99% 0.002 262);
+
+	--acid: oklch(78% 0.185 58);
+	--acid-glow: oklch(78% 0.185 58 / 18%);
+	--acid-border: oklch(78% 0.185 58 / 30%);
+
+	--mint: oklch(68% 0.168 148);
+	--mint-glow: oklch(68% 0.168 148 / 18%);
+
+	--rose: oklch(67% 0.220 14);
+	--violet: oklch(68% 0.210 300);
+	--ice: oklch(72% 0.155 222);
+
+	--teal: oklch(72% 0.170 180);
+	--orange: oklch(75% 0.185 35);
+
+	--font-display: 'Syne', sans-serif;
+	--font-body: 'Fira Sans', sans-serif;
+	--font-mono: 'Fira Code', monospace;
+}
+
+body {
+	background: var(--void);
+	color: var(--text);
+	font-family: var(--font-body);
+	-webkit-font-smoothing: antialiased;
+}
