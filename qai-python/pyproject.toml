@@ -1,0 +1,16 @@
+[project]
+name = "qai-python"
+version = "0.1.0"
+description = "Python modules for QAI, starting with AirLLM-based inference"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "airllm",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

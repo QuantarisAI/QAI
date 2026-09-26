@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+*.log
+
+# model weights / caches downloaded by airllm / huggingface
+.cache/
+models/
+*.safetensors
+*.bin
