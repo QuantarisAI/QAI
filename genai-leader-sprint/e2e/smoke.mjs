@@ -23,7 +23,7 @@ check("countdown present", (await page.getByText("Exam countdown").count()) > 0)
 // ---- Diagnostic: 20 questions, no feedback before submit ----
 await page.goto(BASE + "/diagnostic");
 await page.getByRole("button", { name: /Start diagnostic/ }).click();
-await page.waitForURL(/session\?id=/);
+await page.waitForURL(/session\/?\?id=/);
 await page.getByRole("heading", { name: /Question 1 of 20/ }).waitFor();
 check("diagnostic has 20 questions", true);
 check("no feedback or correctness visible before submit", (await page.getByText("Best answer").count()) === 0 && (await page.getByText("Decision principle").count()) === 0 && (await page.getByText("Appropriate").count()) === 0);
@@ -52,7 +52,7 @@ await page.screenshot({ path: `${SHOTS}/desktop-question.png` });
 // ---- Exam: hidden feedback, reload keeps deadline, expiry on reopening ----
 await page.goto(BASE + "/exam");
 await page.getByRole("button", { name: /Start mock/ }).first().click();
-await page.waitForURL(/exam\/run\?id=/);
+await page.waitForURL(/exam\/run\/?\?id=/);
 const examUrl = page.url();
 await page.getByRole("heading", { name: /Question 1 of 60/ }).waitFor();
 check("exam shows no hint button", (await page.getByRole("button", { name: "Show hint" }).count()) === 0);
@@ -84,7 +84,7 @@ await page.evaluate(() => new Promise((resolve, reject) => {
 await page.goto(BASE + "/");
 await page.getByRole("heading", { name: "GenAI Leader Sprint" }).waitFor();
 await page.goto(examUrl);
-await page.waitForURL(/results\?id=/, { timeout: 15000 });
+await page.waitForURL(/results\/?\?id=/, { timeout: 15000 });
 check("expired exam is auto-submitted on reopening", true);
 check("expiry is announced", (await page.getByText("Time expired").count()) > 0);
 check("unanswered counted as incorrect (1 answered / 59 unanswered)", (await page.getByText("1 / 59").count()) > 0);

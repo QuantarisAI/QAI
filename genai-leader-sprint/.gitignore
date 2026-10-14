@@ -3,3 +3,5 @@ node_modules
 next-env.d.ts
 e2e/shots
 *.tsbuildinfo
+out
+e2e/shots-pages

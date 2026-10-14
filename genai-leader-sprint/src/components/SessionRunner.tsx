@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/lib/store";
@@ -17,7 +18,7 @@ export function SessionRunner({ id }: { id: string }) {
   const cursor = s?.cursor ?? 0;
   useEffect(() => { headingRef.current?.focus(); }, [cursor]);
 
-  if (!s) return <p>Session not found. <a href="/practice">Start a new one</a>.</p>;
+  if (!s) return <p>Session not found. <Link href="/practice">Start a new one</Link>.</p>;
   if (s.kind === "exam") { router.replace(`/exam/run?id=${s.id}`); return null; }
 
   const qkey = s.qkeys[s.cursor];
