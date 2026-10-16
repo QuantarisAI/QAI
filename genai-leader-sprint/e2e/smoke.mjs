@@ -3,6 +3,7 @@ import { chromium } from "playwright-core";
 import { mkdirSync } from "node:fs";
 
 const BASE = process.env.BASE ?? "http://localhost:3100";
+const G = BASE + "/certifications/google";
 const SHOTS = process.env.SHOTS ?? "e2e/shots";
 mkdirSync(SHOTS, { recursive: true });
 const results = [];
@@ -15,13 +16,13 @@ const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
 
-await page.goto(BASE);
+await page.goto(G);
 await page.getByRole("heading", { name: "GenAI Leader Sprint" }).waitFor();
 check("dashboard renders with unverified-draft notice", (await page.getByText("All are unverified drafts").count()) > 0);
 check("countdown present", (await page.getByText("Exam countdown").count()) > 0);
 
 // ---- Diagnostic: 20 questions, no feedback before submit ----
-await page.goto(BASE + "/diagnostic");
+await page.goto(G + "/diagnostic");
 await page.getByRole("button", { name: /Start diagnostic/ }).click();
 await page.waitForURL(/session\/?\?id=/);
 await page.getByRole("heading", { name: /Question 1 of 20/ }).waitFor();
@@ -31,7 +32,7 @@ check("hint hidden until requested", (await page.getByText("Hint:").count()) ===
 await page.getByRole("button", { name: "Show hint" }).click();
 check("hint shown on request", (await page.getByText("Hint:").count()) > 0);
 await page.getByRole("radio").first().check();
-await page.getByRole("radio", { name: "high" }).check();
+await page.getByRole("radio", { name: "high", exact: true }).check();
 await page.getByRole("button", { name: "Submit answer" }).click();
 await page.getByText("Decision principle:").waitFor();
 const marks = await page.getByText(/✔ Appropriate|✘ Not appropriate here/).count();
@@ -50,7 +51,7 @@ check("session position persists after reload", page.url() === url);
 await page.screenshot({ path: `${SHOTS}/desktop-question.png` });
 
 // ---- Exam: hidden feedback, reload keeps deadline, expiry on reopening ----
-await page.goto(BASE + "/exam");
+await page.goto(G + "/exam");
 await page.getByRole("button", { name: /Start mock/ }).first().click();
 await page.waitForURL(/exam\/run\/?\?id=/);
 const examUrl = page.url();
@@ -81,7 +82,7 @@ await page.evaluate(() => new Promise((resolve, reject) => {
     tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error);
   };
 }));
-await page.goto(BASE + "/");
+await page.goto(G + "/");
 await page.getByRole("heading", { name: "GenAI Leader Sprint" }).waitFor();
 await page.goto(examUrl);
 await page.waitForURL(/results\/?\?id=/, { timeout: 15000 });
@@ -89,12 +90,12 @@ check("expired exam is auto-submitted on reopening", true);
 check("expiry is announced", (await page.getByText("Time expired").count()) > 0);
 check("unanswered counted as incorrect (1 answered / 59 unanswered)", (await page.getByText("1 / 59").count()) > 0);
 check("per-domain table and objective gaps shown", (await page.getByText("By domain").count()) > 0 && (await page.getByText("Objective gaps").count()) > 0);
-await page.goto(BASE + "/exam");
+await page.goto(G + "/exam");
 await page.getByText(/Retake \(repeated, not unseen\)/).first().waitFor({ timeout: 10000 }).catch(() => {});
 check("retake is labelled as repeated, not unseen", (await page.getByText(/Retake \(repeated, not unseen\)/).count()) > 0);
 
 // ---- Settings: invalid import rejected, existing data untouched ----
-await page.goto(BASE + "/settings");
+await page.goto(G + "/settings");
 const bad = JSON.stringify({ quiz_metadata: { target_certification: "x", total_questions: 3 }, questions: [{ id: 1, exam_domain: "Nope", scenario_question: "", hint: "h", options: [] }] });
 await page.getByLabel("Paste question JSON").fill(bad);
 await page.getByRole("button", { name: /Validate and import/ }).click();
@@ -106,33 +107,33 @@ await page.getByLabel("Paste question JSON").fill(good);
 await page.getByRole("button", { name: /Validate and import/ }).click();
 await page.getByText(/Imported 1 questions/).waitFor();
 check("valid import accepted as separate practice-only set", true);
-await page.goto(BASE + "/diagnostic");
+await page.goto(G + "/diagnostic");
 await page.getByText("Resume diagnostic").first().waitFor({ timeout: 10000 }).catch(() => {});
 check("previous diagnostic progress still present after import", (await page.getByText("Resume diagnostic").count()) > 0);
 
 // reset requires typed confirmation
-await page.goto(BASE + "/settings");
+await page.goto(G + "/settings");
 check("reset disabled until confirmed", await page.getByRole("button", { name: "Reset progress" }).isDisabled());
 await page.getByLabel("Confirmation").fill("RESET");
 await page.getByRole("button", { name: "Reset progress" }).click();
 await page.getByText("Progress reset.").waitFor();
-await page.goto(BASE + "/exam");
+await page.goto(G + "/exam");
 check("reset clears exam history", (await page.getByText(/Retake/).count()) === 0);
 
 // ---- Mobile layout ----
 const m = await browser.newContext({ viewport: { width: 375, height: 800 }, isMobile: true });
 const mp = await m.newPage();
-for (const path of ["/", "/practice", "/learn", "/exam", "/settings", "/cards", "/notebook"]) {
+for (const path of ["/certifications/google", "/certifications/google/practice", "/certifications/google/learn", "/certifications/google/exam", "/certifications/google/settings", "/certifications/google/cards", "/certifications/google/notebook"]) {
   await mp.goto(BASE + path);
   await mp.waitForLoadState("networkidle");
   const overflow = await mp.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(`mobile 375px: no horizontal page scroll on ${path}`, overflow <= 1, `overflow ${overflow}px`);
 }
-await mp.goto(BASE + "/practice");
+await mp.goto(G + "/practice");
 const small = await mp.evaluate(() => [...document.querySelectorAll("button, a.btn, select, input[type=text], input[type=number]")].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && (r.height < 43.5); }).length);
 check("tap targets are at least 44px tall on /practice", small === 0, `${small} small`);
 await mp.screenshot({ path: `${SHOTS}/mobile-practice.png` });
-await mp.goto(BASE + "/");
+await mp.goto(G + "/");
 await mp.screenshot({ path: `${SHOTS}/mobile-dashboard.png`, fullPage: true });
 
 check("no uncaught page errors", errors.filter((e) => !/favicon/.test(e)).length === 0, errors.slice(0, 3).join(" | "));

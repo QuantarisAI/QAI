@@ -7,12 +7,12 @@ import { LockGuard } from "@/security/LockGuard";
 import { NvShell } from "@/nvidia/ui/NvShell";
 
 const NAV = [
-  ["/", "Dashboard"], ["/diagnostic", "Diagnostic"], ["/learn", "Learn"], ["/practice", "Practice"], ["/exam", "Exam"],
-  ["/notebook", "Notebook"], ["/cards", "Cards"], ["/settings", "Settings"], ["/certifications", "All certifications"],
+  ["/certifications/google", "Dashboard"], ["/certifications/google/diagnostic", "Diagnostic"], ["/certifications/google/learn", "Learn"], ["/certifications/google/practice", "Practice"], ["/certifications/google/exam", "Exam"],
+  ["/certifications/google/notebook", "Notebook"], ["/certifications/google/cards", "Cards"], ["/certifications/google/settings", "Settings"], ["/certifications", "All certifications"],
 ] as const;
 
 function Inner({ children }: { children: ReactNode }) {
-  const path = usePathname();
+  const path = (usePathname() ?? "").replace(/\/+$/, "") || "/";
   const { ready, dbError } = useApp();
   return (
     <>
@@ -50,12 +50,13 @@ function Hub({ children }: { children: ReactNode }) {
   );
 }
 
-/** Routes the whole site: NVIDIA module, the certifications hub, or the original Google app. One lockdown guard covers all of it. */
+/** Routes the whole site: /certifications/nvidia, /certifications/google, or the hub (everything else). One lockdown guard covers all of it. */
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname() ?? "";
   let body: ReactNode;
-  if (path.startsWith("/nvidia")) body = <NvShell>{children}</NvShell>;
-  else if (path.startsWith("/certifications")) body = <Hub>{children}</Hub>;
-  else body = <AppProvider><Inner>{children}</Inner></AppProvider>;
+  const under = (p: string) => path === p || path.startsWith(p + "/");
+  if (under("/certifications/nvidia")) body = <NvShell>{children}</NvShell>;
+  else if (under("/certifications/google")) body = <AppProvider><Inner>{children}</Inner></AppProvider>;
+  else body = <Hub>{children}</Hub>; // hub, legacy-redirect stubs and the 404 page need no study state
   return <LockGuard>{body}</LockGuard>;
 }

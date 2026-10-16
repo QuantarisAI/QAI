@@ -19,7 +19,12 @@ npm run dev          # http://localhost:3000
 Checks: `npm run check` (types, lint, all unit tests, both bank validations). Browser checks (needs the built app running and Chromium): `npm run build && npm start -- -p 3100` then `npm run e2e` (37 checks, including 375px mobile layout).
 Rebuild the bank from `content/` with `npm run bank:build`. `.env.example` documents that no configuration is needed; the optional AI-generation flag is **not implemented**.
 
-## NVIDIA: NCA-GENL Prep (`/nvidia`)
+## Certification router
+
+`/` and `/certifications` are the hub. Each certification lives under its own clean prefix: `/certifications/nvidia/...` and `/certifications/google/...`.
+Old links (`/nvidia/...`, `/exam`, `/session?id=...`, `/learn`, ...) still work: GitHub Pages cannot send HTTP redirects, so each old route is a small client-side forwarding page (`src/components/LegacyRedirect.tsx`) that keeps the query string and hash. To add a certification, add `src/app/certifications/<name>/`, a branch in `src/components/Shell.tsx` and a card on the hub.
+
+## NVIDIA: NCA-GENL Prep (`/certifications/nvidia`)
 
 Built for the NVIDIA-Certified Associate: Generative AI LLMs exam (per [NVIDIA's page](https://www.nvidia.com/en-us/learn/certification/generative-ai-llm-associate/), read 2026-10-16: 50 to 60 multiple-choice questions, 1 hour, five weighted areas: Core ML and AI 30%, Data Analysis 14%, Experimentation 22%, Software Development 24%, Trustworthy AI 10%). Default exam date 28 Nov 2026, plan start 19 Oct 2026; both editable in Settings.
 

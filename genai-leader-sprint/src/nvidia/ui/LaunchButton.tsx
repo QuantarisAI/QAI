@@ -13,7 +13,7 @@ export function LaunchButton({ spec, mockId, children, secondary, disabled }: { 
     try {
       const r = mockId ? await nv.startMock(mockId) : await nv.launch(spec!);
       if (r.error || !r.session) { setErr(r.error ?? "Could not start."); return; }
-      router.push(r.session.kind === "mock" ? `/nvidia/exam?id=${r.session.id}` : `/nvidia/session?id=${r.session.id}`);
+      router.push(r.session.kind === "mock" ? `/certifications/nvidia/exam?id=${r.session.id}` : `/certifications/nvidia/session?id=${r.session.id}`);
     } finally { setBusy(false); }
   };
   return (

@@ -11,12 +11,12 @@ export default function Page() {
           <h2 style={{ marginTop: 0 }}>NVIDIA NCA-GENL</h2>
           <p>Generative AI LLMs Associate. 20 topics, 5 levels each (Beginner to Legendary), 5 timed mocks, a 40-day roadmap and mistake reviews.</p>
           <p className="small muted">Exam date set to 28 Nov 2026 (change it in Settings).</p>
-          <Link className="btn" href="/nvidia">Open NVIDIA prep</Link>
+          <Link className="btn" href="/certifications/nvidia">Open NVIDIA prep</Link>
         </section>
         <section className="card">
           <h2 style={{ marginTop: 0 }}>Google Cloud Generative AI Leader</h2>
           <p>The original 10-day sprint: diagnostic, learn, practice, three exams and a notebook.</p>
-          <Link className="btn secondary" href="/">Open Google prep</Link>
+          <Link className="btn secondary" href="/certifications/google">Open Google prep</Link>
         </section>
       </div>
     </div>

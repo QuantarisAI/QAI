@@ -51,7 +51,7 @@ export function checkHtml(html: string, page: string, host: string): Finding[] {
   return out;
 }
 
-export async function verifySite(baseUrl: string, get: Fetcher, pages = ["/", "/nvidia/", "/certifications/"]): Promise<Finding[]> {
+export async function verifySite(baseUrl: string, get: Fetcher, pages = ["/", "/certifications/nvidia/", "/certifications/google/", "/certifications/"]): Promise<Finding[]> {
   const base = baseUrl.replace(/\/+$/, "");
   const host = new URL(base + "/").host;
   const out: Finding[] = [];

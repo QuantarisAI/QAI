@@ -16,8 +16,8 @@ export function ResultsView({ id }: { id: string }) {
   const nv = useNv();
   const s = nv.getSession(id);
   const [filter, setFilter] = useState<"all" | "wrong" | "unanswered" | "flagged">("wrong");
-  if (!s) return <div className="callout err">That result was not found. <Link href="/nvidia">Back to the dashboard</Link>.</div>;
-  if (s.status === "active") return <div className="callout">This session is still running. <Link href={s.kind === "mock" ? "/nvidia/mocks" : `/nvidia/session?id=${s.id}`}>Continue it</Link>.</div>;
+  if (!s) return <div className="callout err">That result was not found. <Link href="/certifications/nvidia">Back to the dashboard</Link>.</div>;
+  if (s.status === "active") return <div className="callout">This session is still running. <Link href={s.kind === "mock" ? "/certifications/nvidia/mocks" : `/certifications/nvidia/session?id=${s.id}`}>Continue it</Link>.</div>;
   const sc = scoreSession(s, nv.byId);
   const isMock = s.kind === "mock";
   const items = s.qids.map((qid, i) => {
@@ -67,9 +67,9 @@ export function ResultsView({ id }: { id: string }) {
         </div>
       ))}
       <div className="row" style={{ marginTop: "1rem" }}>
-        <Link className="btn" href="/nvidia">Dashboard</Link>
-        <Link className="btn secondary" href="/nvidia/notebook">Notebook (mistake reviews)</Link>
-        <Link className="btn secondary" href="/nvidia/topics">Topics</Link>
+        <Link className="btn" href="/certifications/nvidia">Dashboard</Link>
+        <Link className="btn secondary" href="/certifications/nvidia/notebook">Notebook (mistake reviews)</Link>
+        <Link className="btn secondary" href="/certifications/nvidia/topics">Topics</Link>
       </div>
     </div>
   );

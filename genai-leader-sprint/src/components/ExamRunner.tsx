@@ -39,7 +39,7 @@ export function ExamRunner({ id }: { id: string }) {
     finishing.current = true;
     const flushed = flushTime(sRef.current);
     const done = await app.finishExam(flushed);
-    router.replace(`/results?id=${done.id}`);
+    router.replace(`/certifications/google/results?id=${done.id}`);
   }, [app, flushTime, router]);
 
   // Clock: always derive remaining time from the persisted deadline.
@@ -59,7 +59,7 @@ export function ExamRunner({ id }: { id: string }) {
   const remaining = s ? remainingMs(s, now) : 0;
   useEffect(() => {
     if (!s) return;
-    if (s.status !== "active") router.replace(`/results?id=${s.id}`);
+    if (s.status !== "active") router.replace(`/certifications/google/results?id=${s.id}`);
     else if (remaining <= 0) void finish();
   }, [s, remaining, finish, router]);
 
