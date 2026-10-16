@@ -3,10 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppProvider, useApp } from "@/lib/store";
+import { LockGuard } from "@/security/LockGuard";
+import { NvShell } from "@/nvidia/ui/NvShell";
 
 const NAV = [
   ["/", "Dashboard"], ["/diagnostic", "Diagnostic"], ["/learn", "Learn"], ["/practice", "Practice"], ["/exam", "Exam"],
-  ["/notebook", "Notebook"], ["/cards", "Cards"], ["/settings", "Settings"],
+  ["/notebook", "Notebook"], ["/cards", "Cards"], ["/settings", "Settings"], ["/certifications", "All certifications"],
 ] as const;
 
 function Inner({ children }: { children: ReactNode }) {
@@ -39,10 +41,21 @@ function Inner({ children }: { children: ReactNode }) {
     </>
   );
 }
-export function Shell({ children }: { children: ReactNode }) {
+function Hub({ children }: { children: ReactNode }) {
   return (
-    <AppProvider>
-      <Inner>{children}</Inner>
-    </AppProvider>
+    <>
+      <a className="skip" href="#main">Skip to content</a>
+      <main id="main" tabIndex={-1}>{children}</main>
+    </>
   );
+}
+
+/** Routes the whole site: NVIDIA module, the certifications hub, or the original Google app. One lockdown guard covers all of it. */
+export function Shell({ children }: { children: ReactNode }) {
+  const path = usePathname() ?? "";
+  let body: ReactNode;
+  if (path.startsWith("/nvidia")) body = <NvShell>{children}</NvShell>;
+  else if (path.startsWith("/certifications")) body = <Hub>{children}</Hub>;
+  else body = <AppProvider><Inner>{children}</Inner></AppProvider>;
+  return <LockGuard>{body}</LockGuard>;
 }

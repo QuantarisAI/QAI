@@ -90,6 +90,7 @@ check("expiry is announced", (await page.getByText("Time expired").count()) > 0)
 check("unanswered counted as incorrect (1 answered / 59 unanswered)", (await page.getByText("1 / 59").count()) > 0);
 check("per-domain table and objective gaps shown", (await page.getByText("By domain").count()) > 0 && (await page.getByText("Objective gaps").count()) > 0);
 await page.goto(BASE + "/exam");
+await page.getByText(/Retake \(repeated, not unseen\)/).first().waitFor({ timeout: 10000 }).catch(() => {});
 check("retake is labelled as repeated, not unseen", (await page.getByText(/Retake \(repeated, not unseen\)/).count()) > 0);
 
 // ---- Settings: invalid import rejected, existing data untouched ----
@@ -106,6 +107,7 @@ await page.getByRole("button", { name: /Validate and import/ }).click();
 await page.getByText(/Imported 1 questions/).waitFor();
 check("valid import accepted as separate practice-only set", true);
 await page.goto(BASE + "/diagnostic");
+await page.getByText("Resume diagnostic").first().waitFor({ timeout: 10000 }).catch(() => {});
 check("previous diagnostic progress still present after import", (await page.getByText("Resume diagnostic").count()) > 0);
 
 // reset requires typed confirmation

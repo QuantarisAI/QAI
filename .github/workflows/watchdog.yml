@@ -1,0 +1,58 @@
+name: Watchdog (check the live site)
+
+# Every 15 minutes (GitHub may delay scheduled runs): fetch the live site and compare it with integrity.json and the
+# CSP. On a mismatch it runs the "Lockdown site" workflow and opens an issue. See SECURITY.md for what this can and
+# cannot catch.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+  pages: read
+
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Find the site URL
+        id: url
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FALLBACK: ${{ vars.SITE_URL }}
+        run: |
+          url="$(gh api "repos/${{ github.repository }}/pages" --jq .html_url 2>/dev/null || true)"
+          url="${url:-$FALLBACK}"
+          if [ -z "$url" ]; then echo "::warning::Pages is not published and no SITE_URL variable is set; nothing to check."; fi
+          echo "url=${url%/}" >> "$GITHUB_OUTPUT"
+      - name: Check the live site
+        id: check
+        if: steps.url.outputs.url != ''
+        working-directory: genai-leader-sprint
+        env:
+          SITE_URL: ${{ steps.url.outputs.url }}
+        run: node --experimental-strip-types --no-warnings scripts/watchdog.ts
+      - name: Lock the site down
+        if: steps.check.outputs.lock == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT: ${{ steps.check.outputs.report }}
+        run: |
+          gh workflow run lockdown.yml --repo "${{ github.repository }}" -f reason="watchdog: ${REPORT:0:300}"
+          gh issue create --repo "${{ github.repository }}" --title "Site locked down by the watchdog" \
+            --body "The watchdog found a mismatch on the live site and ran the lockdown workflow.
+
+          Findings: ${REPORT}
+
+          Next steps: inspect the latest deployment and recent commits, rotate credentials if needed, then run the 'Unlock site' workflow." || true

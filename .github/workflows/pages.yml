@@ -1,4 +1,4 @@
-name: Deploy GenAI Leader Sprint to GitHub Pages
+name: Deploy GenAI Leader Sprint and NVIDIA NCA-GENL prep to GitHub Pages
 
 on:
   push:
@@ -23,6 +23,12 @@ jobs:
         working-directory: genai-leader-sprint
     steps:
       - uses: actions/checkout@v4
+      - name: Refuse to deploy while the site is locked down
+        run: |
+          if grep -q '"status"[[:space:]]*:[[:space:]]*"locked"' public/status.json; then
+            echo "::error::The site is locked down (public/status.json). Run the 'Unlock site' workflow first."
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -30,10 +36,16 @@ jobs:
           cache-dependency-path: genai-leader-sprint/package-lock.json
       - run: npm ci
       - run: npm run check
-      - run: npm run build
+      # builds the static export, then adds the CSP meta tags and integrity.json (scripts/harden-export.mjs)
+      - run: npm run build:static
         env:
-          STATIC_EXPORT: "1"
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+      - name: Check that the hardened export is what the watchdog expects
+        run: |
+          test -s out/integrity.json
+          grep -q 'Content-Security-Policy' out/index.html
+          grep -q 'Content-Security-Policy' out/nvidia/index.html
+          ! grep -q "script-src[^\"]*'unsafe-inline'" out/nvidia/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: genai-leader-sprint/out
