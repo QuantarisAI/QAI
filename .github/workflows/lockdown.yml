@@ -1,0 +1,75 @@
+name: Lockdown site
+
+# Replaces the published site with a plain static lock page and marks public/status.json as locked, so that even a
+# rebuild shows the lock screen. Run it by hand (Actions tab, Run workflow) or let the Watchdog run it.
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Why the site is being locked (shown on the lock page)
+        required: true
+        default: manual lockdown
+      hard_off:
+        description: Also unpublish GitHub Pages entirely (needs admin rights; best effort)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Build the lock page
+        env:
+          REASON: ${{ inputs.reason }}
+        run: |
+          python3 - <<'PY'
+          import html, json, os, datetime
+          reason = os.environ.get("REASON", "manual lockdown")[:300]
+          now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+          os.makedirs("lock", exist_ok=True)
+          page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+          <meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+          <title>Site switched off</title>
+          <style>body{{font-family:system-ui,sans-serif;max-width:40rem;margin:12vh auto;padding:0 1.2rem;line-height:1.6;background:#0a0a0a;color:#f2f2f2}}</style></head>
+          <body><main><h1>This site is switched off</h1>
+          <p>The owner switched it off as a precaution ({html.escape(now)}).</p>
+          <p>Reason: {html.escape(reason)}</p>
+          <p>Nothing on this page runs. Study progress that was saved in your browser has not been touched.</p></main></body></html>"""
+          open("lock/index.html", "w").write(page)
+          open("lock/404.html", "w").write(page)
+          open("lock/status.json", "w").write(json.dumps({"status": "locked", "reason": reason, "updated": now}))
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: lock
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Make the lock stick across rebuilds
+        run: |
+          cp lock/status.json genai-leader-sprint/public/status.json
+          git config user.name "site-lockdown[bot]"
+          git config user.email "site-lockdown@users.noreply.github.com"
+          git add genai-leader-sprint/public/status.json
+          git commit -m "lockdown: ${{ github.run_id }}" || true
+          git push || echo "::warning::Could not push the locked status.json (branch protection?). The deployed site is still replaced."
+      - name: Unpublish Pages entirely (optional)
+        if: inputs.hard_off
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X DELETE "repos/${{ github.repository }}/pages" || echo "::warning::Could not unpublish Pages (needs admin rights)."

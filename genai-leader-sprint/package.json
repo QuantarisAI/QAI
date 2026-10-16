@@ -6,13 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "bank:build": "tsx scripts/build-bank.ts",
-    "bank:validate": "tsx scripts/validate-bank.ts",
+    "bank:validate": "tsx scripts/validate-bank.ts && tsx scripts/validate-nvidia-bank.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "e2e": "node e2e/smoke.mjs",
     "check": "npm run typecheck && npm run lint && npm run test && npm run bank:validate",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:static": "STATIC_EXPORT=1 NEXT_PUBLIC_INTEGRITY=1 next build && node scripts/harden-export.mjs"
   },
   "dependencies": {
     "next": "16.2.4",
