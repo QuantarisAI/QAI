@@ -13,7 +13,7 @@ const manifest = JSON.stringify({ files: Object.fromEntries(Object.entries(files
 function site(over: Record<string, string> = {}): Fetcher {
   const map: Record<string, string> = {
     "/status.json": '{"status":"ok"}', "/integrity.json": manifest, "/_next/static/a.js": files["_next/static/a.js"],
-    "/": goodHtml, "/nvidia/": goodHtml, "/certifications/": goodHtml, ...over,
+    "/": goodHtml, "/certifications/nvidia/": goodHtml, "/certifications/google/": goodHtml, "/certifications/": goodHtml, ...over,
   };
   return async (url) => {
     const p = new URL(url).pathname.replace(/^\/repo/, "");
@@ -37,7 +37,7 @@ describe("watchdog", () => {
   });
   it("an injected inline script not covered by the CSP triggers a lock", async () => {
     const bad = goodHtml.replace("</body>", "<script>steal()</script></body>");
-    expect(locks(await verifySite(B, site({ "/nvidia/": bad }))).map((x) => x.msg).join()).toContain("inline script not covered");
+    expect(locks(await verifySite(B, site({ "/certifications/nvidia/": bad }))).map((x) => x.msg).join()).toContain("inline script not covered");
   });
   it("a weakened CSP triggers a lock", () => {
     const bad = goodHtml.replace("script-src 'self'", "script-src 'self' 'unsafe-inline'");

@@ -18,8 +18,8 @@ export function SessionRunner({ id }: { id: string }) {
   const cursor = s?.cursor ?? 0;
   useEffect(() => { headingRef.current?.focus(); }, [cursor]);
 
-  if (!s) return <p>Session not found. <Link href="/practice">Start a new one</Link>.</p>;
-  if (s.kind === "exam") { router.replace(`/exam/run?id=${s.id}`); return null; }
+  if (!s) return <p>Session not found. <Link href="/certifications/google/practice">Start a new one</Link>.</p>;
+  if (s.kind === "exam") { router.replace(`/certifications/google/exam/run?id=${s.id}`); return null; }
 
   const qkey = s.qkeys[s.cursor];
   const q = app.byKey.get(qkey);
@@ -47,7 +47,7 @@ export function SessionRunner({ id }: { id: string }) {
   };
   const submit = async () => { if (ans?.letter) setLocal(await app.submitQuestion(s, q)); };
   const go = async (d: number) => { setShowHint(false); await update({ ...s, cursor: Math.min(total - 1, Math.max(0, s.cursor + d)) }); };
-  const finish = async () => { await app.finishSession(s); router.push(`/results?id=${s.id}`); };
+  const finish = async () => { await app.finishSession(s); router.push(`/certifications/google/results?id=${s.id}`); };
 
   return (
     <div>

@@ -34,12 +34,12 @@ export function ExamRunner({ id }: { id: string }) {
     finishing.current = true;
     (async () => {
       const done = await nv.finish(s);
-      router.replace(`/nvidia/results?id=${done.id}`);
+      router.replace(`/certifications/nvidia/results?id=${done.id}`);
     })();
   }, [s, active, deadline, left, nv, router]);
 
-  if (!s) return <div className="callout err">That exam was not found. <Link href="/nvidia/mocks">Back to mocks</Link>.</div>;
-  if (!active) { router.replace(`/nvidia/results?id=${s.id}`); return <p role="status">Opening results…</p>; }
+  if (!s) return <div className="callout err">That exam was not found. <Link href="/certifications/nvidia/mocks">Back to mocks</Link>.</div>;
+  if (!active) { router.replace(`/certifications/nvidia/results?id=${s.id}`); return <p role="status">Opening results…</p>; }
 
   const qid = s.qids[s.cursor];
   const q = nv.byId.get(qid);
@@ -53,7 +53,7 @@ export function ExamRunner({ id }: { id: string }) {
     if (finishing.current) return;
     finishing.current = true;
     const done = await nv.finish(s);
-    router.push(`/nvidia/results?id=${done.id}`);
+    router.push(`/certifications/nvidia/results?id=${done.id}`);
   };
   const low = left < 5 * 60000;
 

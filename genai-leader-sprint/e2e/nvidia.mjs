@@ -16,7 +16,7 @@ const locked = async (p = page) => (await p.getByText("This site is switched off
 // ---------- hub + dashboard ----------
 await page.goto(BASE + "/certifications/");
 check("hub lists both certifications", (await page.getByRole("link", { name: "Open NVIDIA prep" }).count()) === 1 && (await page.getByRole("link", { name: "Open Google prep" }).count()) === 1);
-await page.goto(BASE + "/nvidia/");
+await page.goto(BASE + "/certifications/nvidia/");
 await page.getByText(/to the exam|Exam day|Exam date passed/).first().waitFor();
 check("NVIDIA dashboard renders, not locked", !(await locked()));
 check("unofficial disclaimer visible", (await page.getByText("Not affiliated with, endorsed by or sponsored by NVIDIA").count()) > 0);
@@ -28,7 +28,7 @@ check("CSP meta present with no unsafe-inline for scripts", await page.evaluate(
 }));
 
 // ---------- practice a ladder level ----------
-await page.goto(BASE + "/nvidia/topics/");
+await page.goto(BASE + "/certifications/nvidia/topics/");
 await page.getByRole("button", { name: /^C1 .*Beginner/ }).first().click();
 await page.waitForURL(/nvidia\/session\/?\?id=/);
 await page.getByText("Question 1 of 3").waitFor();
@@ -48,7 +48,7 @@ const resOk = (await page.getByRole("heading", { name: /results/ }).count()) > 0
 check("results page after a ladder level", resOk, resOk ? "" : (await page.locator("main").innerText()).slice(0, 400));
 
 // ---------- timed mock: answers persist, clock cannot be reset by reload ----------
-await page.goto(BASE + "/nvidia/mocks/");
+await page.goto(BASE + "/certifications/nvidia/mocks/");
 await page.getByRole("button", { name: "Start" }).first().click();
 await page.waitForURL(/nvidia\/exam\/?\?id=/);
 await page.getByRole("timer").waitFor();
@@ -83,17 +83,31 @@ check("domain table uses official weights", (await page.getByText("Core ML & AI 
 void examUrl;
 
 // ---------- other pages ----------
-for (const [path, h] of [["/nvidia/roadmap/", "40-day roadmap"], ["/nvidia/syllabus/", "Syllabus and sources"], ["/nvidia/notebook/", "Notebook"], ["/nvidia/settings/", "Settings"]]) {
+for (const [path, h] of [["/certifications/nvidia/roadmap/", "40-day roadmap"], ["/certifications/nvidia/syllabus/", "Syllabus and sources"], ["/certifications/nvidia/notebook/", "Notebook"], ["/certifications/nvidia/settings/", "Settings"]]) {
   await page.goto(BASE + path);
   await page.getByRole("heading", { name: h, exact: true }).waitFor();
   check(`${path} renders`, !(await locked()));
 }
-await page.goto(BASE + "/nvidia/roadmap/");
+await page.goto(BASE + "/certifications/nvidia/roadmap/");
 await page.getByRole("heading", { name: "40-day roadmap" }).waitFor();
 check("roadmap has 40 days", (await page.locator("tbody tr td:first-child").filter({ hasText: /^\d+/ }).count()) === 40);
 
-// ---------- the original Google app still works ----------
+// ---------- router: hub, clean routes, and old links redirect (query and hash kept) ----------
 await page.goto(BASE + "/");
+await page.getByRole("heading", { name: "Certification practice" }).waitFor();
+check("site root is the certification hub", true);
+for (const [old, want] of [
+  ["/nvidia/topics/#t-C3", /certifications\/nvidia\/topics\/?#t-C3$/],
+  ["/nvidia/", /certifications\/nvidia\/?$/],
+  ["/exam/", /certifications\/google\/exam\/?$/],
+  ["/session/?id=abc", /certifications\/google\/session\/?\?id=abc$/],
+  ["/exam/run/?id=xyz", /certifications\/google\/exam\/run\/?\?id=xyz$/],
+]) {
+  await page.goto(BASE + old);
+  await page.waitForURL(want, { timeout: 8000 }).then(() => check(`old link ${old} redirects`, true), () => check(`old link ${old} redirects (got ${page.url()})`, false));
+}
+// ---------- the original Google app still works ----------
+await page.goto(BASE + "/certifications/google/");
 await page.getByRole("heading", { name: "GenAI Leader Sprint" }).waitFor();
 check("original Google app unchanged and not locked", !(await locked()));
 
@@ -103,7 +117,7 @@ check("no CSP violations or page errors during normal use", bad.length === 0, ba
 
 // ---------- lockdown ----------
 const p2 = await ctx.newPage();
-await p2.goto(BASE + "/nvidia/");
+await p2.goto(BASE + "/certifications/nvidia/");
 await p2.getByText(/to the exam|Exam day|Exam date passed/).first().waitFor();
 await p2.evaluate(() => { const s = document.createElement("script"); s.src = "https://evil.example/steal.js"; document.body.appendChild(s); });
 await p2.getByText("This site is switched off").waitFor({ timeout: 8000 });
@@ -117,16 +131,16 @@ await p2.close();
 
 const p3 = await ctx.newPage();
 await p3.route("**/status.json*", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "locked", reason: "test" }) }));
-await p3.goto(BASE + "/nvidia/");
+await p3.goto(BASE + "/certifications/nvidia/");
 await p3.getByText("This site is switched off").waitFor({ timeout: 8000 });
 check("remote kill switch locks the whole NVIDIA app", true);
-await p3.goto(BASE + "/");
+await p3.goto(BASE + "/certifications/google/");
 await p3.getByText("This site is switched off").waitFor({ timeout: 8000 });
 check("kill switch also locks the Google app", true);
 await p3.close();
 
 const p4 = await ctx.newPage();
-await p4.goto(BASE + "/nvidia/");
+await p4.goto(BASE + "/certifications/nvidia/");
 await p4.getByText(/to the exam|Exam day|Exam date passed/).first().waitFor();
 await p4.evaluate(() => { const f = document.createElement("iframe"); f.src = "https://evil.example/"; document.body.appendChild(f); });
 await p4.getByText("This site is switched off").waitFor({ timeout: 8000 });
@@ -134,7 +148,7 @@ check("injected foreign iframe locks the site", true);
 await p4.close();
 
 const p5 = await ctx.newPage();
-await p5.setContent(`<iframe id=f src="${BASE}/nvidia/" width=900 height=600></iframe>`);
+await p5.setContent(`<iframe id=f src="${BASE}/certifications/nvidia/" width=900 height=600></iframe>`);
 const fr = p5.frameLocator("#f");
 await fr.getByText("This site is switched off").waitFor({ timeout: 8000 });
 check("site refuses to run inside another site's frame (clickjacking)", true);
@@ -148,13 +162,13 @@ await p7.route("**/integrity.json*", async (route) => {
   for (const k of Object.keys(m.files)) if (k.endsWith(".js")) m.files[k] = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(m) });
 });
-await p7.goto(BASE + "/nvidia/");
+await p7.goto(BASE + "/certifications/nvidia/");
 await p7.getByText("This site is switched off").waitFor({ timeout: 15000 });
 check("a script that does not match integrity.json locks the site", (await p7.getByText("does not match what was published").count()) > 0);
 await p7.close();
 
 const p6 = await ctx.newPage();
-await p6.goto(BASE + "/nvidia/");
+await p6.goto(BASE + "/certifications/nvidia/");
 await p6.getByText(/to the exam|Exam day|Exam date passed/).first().waitFor();
 await p6.evaluate(() => { const d = document.createElement("div"); d.id = "ext"; d.textContent = "extension ui"; const i = document.createElement("img"); i.src = "data:image/png;base64,iVBORw0KGgo="; d.appendChild(i); document.body.appendChild(d); });
 await p6.waitForTimeout(800);

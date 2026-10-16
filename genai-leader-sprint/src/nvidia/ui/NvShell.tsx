@@ -5,8 +5,8 @@ import { useEffect, type ReactNode } from "react";
 import { NvProvider, useNv } from "../store";
 
 const NAV = [
-  ["/nvidia", "Dashboard"], ["/nvidia/topics", "Topics"], ["/nvidia/mocks", "Mocks"], ["/nvidia/notebook", "Notebook"],
-  ["/nvidia/roadmap", "Roadmap"], ["/nvidia/syllabus", "Syllabus"], ["/nvidia/settings", "Settings"],
+  ["/certifications/nvidia", "Dashboard"], ["/certifications/nvidia/topics", "Topics"], ["/certifications/nvidia/mocks", "Mocks"], ["/certifications/nvidia/notebook", "Notebook"],
+  ["/certifications/nvidia/roadmap", "Roadmap"], ["/certifications/nvidia/syllabus", "Syllabus"], ["/certifications/nvidia/settings", "Settings"],
 ] as const;
 
 function Inner({ children }: { children: ReactNode }) {

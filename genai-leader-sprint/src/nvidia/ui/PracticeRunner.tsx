@@ -14,10 +14,10 @@ export function PracticeRunner({ id }: { id: string }) {
   // Selection is stored together with the question it belongs to, so a slow save can never wipe the next question's choice.
   const [pick, setPick] = useState<{ qid: string; letter?: Letter; conf?: Confidence } | null>(null);
   const [busy, setBusy] = useState(false);
-  if (!session) return <div className="callout err">That session was not found. <Link href="/nvidia/topics">Back to topics</Link>.</div>;
-  if (session.kind === "mock") return <div className="callout">This is a timed mock. <Link href={`/nvidia/mocks`}>Open it from Mocks</Link>.</div>;
+  if (!session) return <div className="callout err">That session was not found. <Link href="/certifications/nvidia/topics">Back to topics</Link>.</div>;
+  if (session.kind === "mock") return <div className="callout">This is a timed mock. <Link href={`/certifications/nvidia/mocks`}>Open it from Mocks</Link>.</div>;
   if (session.status !== "active") {
-    router.replace(`/nvidia/results?id=${session.id}`);
+    router.replace(`/certifications/nvidia/results?id=${session.id}`);
     return <p role="status">Opening results…</p>;
   }
 
@@ -45,7 +45,7 @@ export function PracticeRunner({ id }: { id: string }) {
     try {
       if (last) {
         const done = await nv.finish(session);
-        router.push(`/nvidia/results?id=${done.id}`);
+        router.push(`/certifications/nvidia/results?id=${done.id}`);
       } else {
         await nv.persist({ ...session, cursor: session.cursor + 1 });
       }
@@ -53,7 +53,7 @@ export function PracticeRunner({ id }: { id: string }) {
   };
   const quit = async () => {
     const done = await nv.finish(session);
-    router.push(`/nvidia/results?id=${done.id}`);
+    router.push(`/certifications/nvidia/results?id=${done.id}`);
   };
 
   return (

@@ -52,7 +52,7 @@ export function Results({ id }: { id: string }) {
           </details>
         );
       })}
-      <div className="row"><Link className="btn" href="/">Dashboard</Link><Link className="btn secondary" href="/notebook">Mistake notebook</Link></div>
+      <div className="row"><Link className="btn" href="/certifications/google">Dashboard</Link><Link className="btn secondary" href="/certifications/google/notebook">Mistake notebook</Link></div>
     </div>
   );
 }
